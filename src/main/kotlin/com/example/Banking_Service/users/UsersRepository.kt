@@ -22,7 +22,11 @@ data class UserEntity(
     // mapped by specify the foreign key in accounts
     // etc... user knows about its accounts and vice versa
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL] )
-    val accounts: List<AccountEntity> = emptyList()
+    val accounts: List<AccountEntity> = emptyList(),
+
+    // oneToOne relationship with KYC
+    @OneToOne(mappedBy = "user", cascade = [CascadeType.ALL] )
+    val kyc: KycEntity? = null,
 ){
     constructor(): this(null, "", "")
 }
