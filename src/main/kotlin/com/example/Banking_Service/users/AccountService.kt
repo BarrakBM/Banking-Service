@@ -1,8 +1,10 @@
 package com.example.Banking_Service.users
 
+import com.example.Banking_Service.dto.AccountInfoDTO
+import com.example.Banking_Service.dto.AccountListResponseDTO
+import com.example.Banking_Service.dto.CreateAccountDTO
+import com.example.Banking_Service.dto.CreateAccountResponseDTO
 import java.security.SecureRandom
-import com.example.Banking_Service.dto.createAccountDTO
-import com.example.Banking_Service.dto.createAccountResponseDTO
 import jakarta.inject.Named
 
 @Named
@@ -31,7 +33,7 @@ class AccountService(
     }
 
     // 1. create Account
-    fun createAccount(dto: createAccountDTO): createAccountResponseDTO{
+    fun createAccount(dto: CreateAccountDTO): CreateAccountResponseDTO {
         // check for the user you want to create an account for (find user)
         val user = usersRepository.findById(dto.userId)
             .orElseThrow{NoSuchElementException("user not found")}
@@ -52,13 +54,34 @@ class AccountService(
         accountsRepository.save(newAccount)
 
         // return
-        return createAccountResponseDTO(
+        return CreateAccountResponseDTO(
             userId = dto.userId,
             accountNumber = newAccountNumber,
             name = dto.name,
             initialBalance = dto.initialBalance
 
         )
+    }
+
+    // 2. get all accounts
+    fun getAccounts(): AccountListResponseDTO{
+        // get all accounts from the repo
+        val accounts = accountsRepository.findAll()
+
+        // get account dto (convert entities to DTO)
+        // for each account entity in accounts we're creating a new DTO
+        val accountsDTO = accounts.map { account ->
+            AccountInfoDTO(
+                userId = account.user.id ?: 0,
+                accountNumber = account.accountNumber,
+                name = account.name,
+                balance = account.balance,
+                isActive = account.isActive
+
+            )
+
+        }
+        return AccountListResponseDTO(accounts = accountsDTO)
     }
 }
 
