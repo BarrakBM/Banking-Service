@@ -10,6 +10,8 @@ class KycService(
     private val usersRepository: UsersRepository
 ) {
 
+
+    // 1. create or update function
     fun createOrUpdate(dto: SaveKycDTO): KycResponseDTO{
         // check if user already exist (find user)
         val user = usersRepository.findById(dto.userId)
@@ -50,5 +52,27 @@ class KycService(
             salary = dto.salary
 
         )
+    }
+
+    // 2. get Kyc info
+    fun getKycInfo(userId: Long): KycResponseDTO{
+
+        // check if user exists (find user)
+        val user = usersRepository.findById(userId)
+            .orElseThrow{NoSuchElementException("user not found")}
+
+        // find if user have kyc
+        val kyc = kycRepository.findByUser(user)
+            ?: throw NoSuchElementException("Kyc element for this user doesn't exist") // if no such info
+
+        // return dto response
+        return KycResponseDTO(
+            userId = userId,
+            firstName = kyc.firstName,
+            lastName = kyc.lastName,
+            dateOfBirth = kyc.dateOfBirth,
+            salary = kyc.salary
+        )
+
     }
 }
