@@ -7,7 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository
 import java.math.BigDecimal
 
 @Named
-interface AccountsRepository : JpaRepository<AccountEntity, Long>
+interface AccountsRepository : JpaRepository<AccountEntity, Long> {
+    fun findByAccountNumber(accountNumber: String): Any
+}
 
 @Entity
 @Table(name = "Account")
@@ -25,6 +27,6 @@ data class AccountEntity(
     @Column(name="name")
     val name: String,
     val balance: BigDecimal,
-    val isActive: Boolean,
+    var isActive: Boolean,
     val accountNumber: String
 )

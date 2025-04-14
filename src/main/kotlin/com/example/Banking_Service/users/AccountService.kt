@@ -6,6 +6,7 @@ import com.example.Banking_Service.dto.CreateAccountDTO
 import com.example.Banking_Service.dto.CreateAccountResponseDTO
 import java.security.SecureRandom
 import jakarta.inject.Named
+import jakarta.transaction.Transactional
 
 @Named
 class AccountService(
@@ -83,5 +84,17 @@ class AccountService(
         }
         return AccountListResponseDTO(accounts = accountsDTO)
     }
+
+    // 3. Close Account
+    fun closeAccount(accountNumber: String): AccountEntity {
+        val account = accountsRepository.findByAccountNumber(accountNumber) as AccountEntity
+        // set the account to false
+        account.isActive = false
+
+        return accountsRepository.save(account)
+
+    }
+
+
 }
 
