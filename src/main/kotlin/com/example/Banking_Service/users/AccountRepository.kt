@@ -7,17 +7,23 @@ import org.springframework.data.jpa.repository.JpaRepository
 import java.math.BigDecimal
 
 @Named
-interface AccountsRepository : JpaRepository<UserEntity, Long>
+interface AccountsRepository : JpaRepository<AccountEntity, Long>
 
 @Entity
-@Table(name = "Accounts")
+@Table(name = "Account")
 
 data class AccountEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     val id: Long? = null,
-    val userId: Long?,
+
+    // Many accounts can have ony user only
+    @ManyToOne
+    @JoinColumn(name = "user_id") // user_id is the db column
+    val user: UserEntity,
+
+    @Column(name="name")
+    val name: String,
     val balance: BigDecimal,
     val isActive: Boolean,
     val accountNumber: String
