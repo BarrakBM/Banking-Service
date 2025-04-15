@@ -21,8 +21,12 @@ class AccountController(
 
     // create account
     @PostMapping("/accounts/v1/accounts")
-    fun createAccount(@RequestBody request: CreateAccountDTO): CreateAccountResponseDTO {
-        return accountService.createAccount(request)
+    fun createAccount(@RequestBody request: CreateAccountDTO): Any {
+        try {
+            return accountService.createAccount(request)
+        } catch (e: IllegalArgumentException) {
+            return ResponseEntity.badRequest().body(mapOf("error" to e.message))
+        }
     }
 
     // list accounts

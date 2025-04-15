@@ -18,6 +18,7 @@ data class UserEntity(
     val username: String,
     val passkey: String,
 
+
     //This defines a oneToMany relationship (a user can have many accounts)
     // mapped by specify the foreign key in accounts
     // etc... user knows about its accounts and vice versa
@@ -28,5 +29,6 @@ data class UserEntity(
     @OneToOne(mappedBy = "user", cascade = [CascadeType.ALL] )
     val kyc: KycEntity? = null,
 ){
-    constructor(): this(null, "", "")
+    constructor() : this(null, "", "", emptyList(), null)
+
 }

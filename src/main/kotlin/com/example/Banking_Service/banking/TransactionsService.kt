@@ -30,7 +30,17 @@ class TransactionsService (
         // BigDecimal.ZERO check if account is less or equal to zero
         // if it's true then throw exception
         if(transferRequest.amount <= BigDecimal.ZERO){
-            throw IllegalArgumentException("sufficient funds")
+            throw IllegalArgumentException("Transfer amount should be bigger than 0")
+        }
+
+        // check if account is closed
+        if(!sourceAccount.isActive){
+            throw IllegalArgumentException("Source account is closed")
+        }
+
+        // check if account is closed
+        if(!destinationAccount.isActive){
+            throw IllegalArgumentException("Destination account is closed")
         }
 
         // update source and destination account
@@ -39,7 +49,7 @@ class TransactionsService (
         destinationAccount.balance += transferRequest.amount
 
         // create transaction record
-        // since id is nullable we will use !!!
+        // since id is nullable we will use !!
         val transaction = TransactionEntity(
             sourceAccount = sourceAccount.id!!,
             destinationAccount = destinationAccount.id!!,

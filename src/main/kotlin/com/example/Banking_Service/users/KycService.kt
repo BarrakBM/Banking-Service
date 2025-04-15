@@ -63,6 +63,7 @@ class KycService(
 
         // find if user have kyc
         val kyc = kycRepository.findByUser(user)
+            //if user doesn't have KYC
             ?: throw NoSuchElementException("Kyc element for this user doesn't exist") // if no such info
 
         // return dto response

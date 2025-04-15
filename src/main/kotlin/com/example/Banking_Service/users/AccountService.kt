@@ -7,6 +7,7 @@ import com.example.Banking_Service.dto.CreateAccountResponseDTO
 import java.security.SecureRandom
 import jakarta.inject.Named
 import jakarta.transaction.Transactional
+import java.math.BigDecimal
 
 @Named
 class AccountService(
@@ -35,10 +36,15 @@ class AccountService(
 
     // 1. create Account
     fun createAccount(dto: CreateAccountDTO): CreateAccountResponseDTO {
+
         // check for the user you want to create an account for (find user)
         val user = usersRepository.findById(dto.userId)
             .orElseThrow{NoSuchElementException("user not found")}
 
+        // if initial balance is less than zero
+        if (dto.initialBalance < BigDecimal.ZERO) {
+            throw IllegalArgumentException("Initial balance cannot be negative")
+        }
 
         // generate new account number
         val newAccountNumber = generateAccountNumber()
