@@ -26,7 +26,9 @@ data class AccountEntity(
 
     @Column(name="name")
     val name: String,
-    val balance: BigDecimal,
+    var balance: BigDecimal,
     var isActive: Boolean,
     val accountNumber: String
-)
+){
+    constructor(): this(null,UserEntity(),"", BigDecimal.ZERO,true,"")
+}
