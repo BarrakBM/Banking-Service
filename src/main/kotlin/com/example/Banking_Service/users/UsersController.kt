@@ -20,7 +20,6 @@ class UsersController(
     // register users
     @PostMapping("/users/v1/register")
     fun register(@RequestBody request: RegisterUserDTO): Any {
-        //return usersService.registerUser(request)
         try {
             return usersService.registerUser(request)
         } catch (e: IllegalArgumentException) {

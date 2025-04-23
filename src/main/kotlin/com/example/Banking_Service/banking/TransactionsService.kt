@@ -2,8 +2,8 @@ package com.example.Banking_Service.banking
 
 import com.example.Banking_Service.dto.TransactionRequestDTO
 import com.example.Banking_Service.dto.TransactionResponseDTO
-import com.example.Banking_Service.users.AccountEntity
-import com.example.Banking_Service.users.AccountsRepository
+import com.example.Banking_Service.accounts.AccountEntity
+import com.example.Banking_Service.accounts.AccountsRepository
 import jakarta.inject.Named
 import java.math.BigDecimal
 

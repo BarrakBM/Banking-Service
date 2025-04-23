@@ -1,12 +1,17 @@
 package com.example.Banking_Service.users
 
 
+import com.example.Banking_Service.accounts.AccountEntity
+import com.example.Banking_Service.kyc.KycEntity
 import jakarta.inject.Named
 import jakarta.persistence.*
+import org.apache.catalina.User
 import org.springframework.data.jpa.repository.JpaRepository
 
 @Named
-interface UsersRepository : JpaRepository<UserEntity, Long>
+interface UsersRepository : JpaRepository<UserEntity, Long> {
+    fun findByUsername(username: String): UserEntity?
+}
 
 @Entity
 @Table(name = "Users")

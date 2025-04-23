@@ -1,9 +1,8 @@
-package com.example.Banking_Service.users
+package com.example.Banking_Service.accounts
 
-import com.example.Banking_Service.dto.AccountInfoDTO
 import com.example.Banking_Service.dto.AccountListResponseDTO
 import com.example.Banking_Service.dto.CreateAccountDTO
-import com.example.Banking_Service.dto.CreateAccountResponseDTO
+import com.example.Banking_Service.users.UsersRepository
 import org.springframework.http.ResponseEntity
 
 import org.springframework.web.bind.annotation.GetMapping
@@ -20,7 +19,7 @@ class AccountController(
 ){
 
     // create account
-    @PostMapping("/accounts/v1/accounts")
+    @PostMapping("/com/example/Banking_Service/accounts/v1/accounts")
     fun createAccount(@RequestBody request: CreateAccountDTO): Any {
         try {
             return accountService.createAccount(request)
@@ -30,13 +29,13 @@ class AccountController(
     }
 
     // list accounts
-    @GetMapping("/accounts/v1/accounts")
+    @GetMapping("/com/example/Banking_Service/accounts/v1/accounts")
     fun getAccounts(): AccountListResponseDTO{
         return accountService.getAccounts()
     }
 
     // delete account
-    @PostMapping("/accounts/v1/accounts/{accountNumber}/close")
+    @PostMapping("/com/example/Banking_Service/accounts/v1/accounts/{accountNumber}/close")
     fun closeAccount(@PathVariable accountNumber: String): ResponseEntity<Void> {
         accountService.closeAccount(accountNumber)
         // Return 200 ok

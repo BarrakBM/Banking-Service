@@ -1,4 +1,4 @@
-package com.example.Banking_Service.users
+package com.example.Banking_Service.accounts
 
 import com.example.Banking_Service.users.UserEntity
 import jakarta.inject.Named

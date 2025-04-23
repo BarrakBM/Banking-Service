@@ -1,5 +1,6 @@
-package com.example.Banking_Service.users
+package com.example.Banking_Service.kyc
 
+import com.example.Banking_Service.users.UserEntity
 import jakarta.inject.Named
 import jakarta.persistence.*
 import org.springframework.data.jpa.repository.JpaRepository

@@ -3,6 +3,7 @@ package com.example.Banking_Service.users
 import com.example.Banking_Service.dto.RegisterUserDTO
 import com.example.Banking_Service.dto.UserResponseDTO
 import jakarta.inject.Named
+import org.springframework.security.crypto.password.PasswordEncoder
 
 const val MAX_CHAR = 15
 const val MIN_CHAR = 6
@@ -10,7 +11,9 @@ const val MIN_PASS_CHAR = 7
 
 @Named
 class UsersService(
-    private val usersRepository: UsersRepository
+    private val usersRepository: UsersRepository,
+    private val passwordEncoder: PasswordEncoder
+
 ) {
 
     // registering a user
@@ -31,7 +34,7 @@ class UsersService(
 
         val newUser = UserEntity(
             username = request.username,
-            passkey = request.passkey
+            passkey = passwordEncoder.encode(request.passkey)
         )
 
 

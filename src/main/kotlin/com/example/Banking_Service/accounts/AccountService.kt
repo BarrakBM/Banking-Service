@@ -1,12 +1,12 @@
-package com.example.Banking_Service.users
+package com.example.Banking_Service.accounts
 
 import com.example.Banking_Service.dto.AccountInfoDTO
 import com.example.Banking_Service.dto.AccountListResponseDTO
 import com.example.Banking_Service.dto.CreateAccountDTO
 import com.example.Banking_Service.dto.CreateAccountResponseDTO
+import com.example.Banking_Service.users.UsersRepository
 import java.security.SecureRandom
 import jakarta.inject.Named
-import jakarta.transaction.Transactional
 import java.math.BigDecimal
 
 @Named

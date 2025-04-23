@@ -1,7 +1,8 @@
-package com.example.Banking_Service.users
+package com.example.Banking_Service.kyc
 
 import com.example.Banking_Service.dto.KycResponseDTO
 import com.example.Banking_Service.dto.SaveKycDTO
+import com.example.Banking_Service.users.UsersRepository
 import jakarta.inject.Named
 
 @Named
