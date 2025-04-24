@@ -2,10 +2,7 @@ package com.example.Banking_Service
 
 import com.example.Banking_Service.authentication.AuthRequest
 import com.example.Banking_Service.authentication.AuthResponse
-import com.example.Banking_Service.dto.CreateAccountDTO
-import com.example.Banking_Service.dto.CreateAccountResponseDTO
-import com.example.Banking_Service.dto.RegisterUserDTO
-import com.example.Banking_Service.dto.UserResponseDTO
+import com.example.Banking_Service.dto.*
 import com.example.Banking_Service.users.UserEntity
 import com.example.Banking_Service.users.UsersRepository
 import org.junit.jupiter.api.BeforeAll
@@ -17,9 +14,11 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
+import org.springframework.boot.test.web.client.exchange
 import org.springframework.boot.test.web.client.postForEntity
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -145,7 +144,7 @@ class BankingServiceApplicationTests {
 		// create first account request
 		val account1 = CreateAccountDTO(
 			userId = user?.id!!,
-			name = "Debit card",
+			name = "Debit Account",
 			initialBalance = BigDecimal("2000.00")
 		)
 
@@ -160,7 +159,7 @@ class BankingServiceApplicationTests {
 		// create 2nd Account
 		val account2 = CreateAccountDTO(
 			userId = user.id!!,
-			name = "Debit card",
+			name = "Investment Account",
 			initialBalance = BigDecimal("2000.00")
 		)
 
@@ -172,5 +171,66 @@ class BankingServiceApplicationTests {
 		)
 		assertEquals(HttpStatus.OK, response2.statusCode) // check status code
 	}
+
+	//4th test
+	@Test
+	fun `As a developer, I can test reading a list of accounts `(){
+
+		//get authentication token
+		val token = getAuthToken()
+
+		//get user id
+		val user = usersRepository.findByUsername(testUser)
+
+		// create first account request
+		val account1 = CreateAccountDTO(
+			userId = user?.id!!,
+			name = "Debit Account",
+			initialBalance = BigDecimal("4000.00")
+		)
+		//create 2nd account
+		val account2 = CreateAccountDTO(
+			userId = user.id!!,
+			name = "Saving Account",
+			initialBalance = BigDecimal("5000.00")
+		)
+
+		val response1: ResponseEntity<CreateAccountResponseDTO> = restTemplate.postForEntity(
+			"/accounts/v1/accounts",
+			authRequest(account1, token),
+			CreateAccountResponseDTO::class.java
+		)
+		val response2: ResponseEntity<CreateAccountResponseDTO> = restTemplate.postForEntity(
+			"/accounts/v1/accounts",
+			authRequest(account2, token),
+			CreateAccountResponseDTO::class.java
+		)
+
+		// create authenticated get request
+		val headers = HttpHeaders()
+		headers.setBearerAuth(token)
+		val getRequest = HttpEntity<Any>(headers)
+
+		// retrieve list of accounts
+		val response: ResponseEntity<AccountListResponseDTO> = restTemplate.exchange(
+			"/accounts/v1/accounts",
+			HttpMethod.GET,
+			getRequest,
+			AccountListResponseDTO::class.java
+		)
+
+		assertEquals(HttpStatus.OK, response.statusCode) // check status code
+		assertEquals(2, response.body?.accounts?.size)// making sure there's 2 accounts in the list
+
+		val accounts = response.body?.accounts
+		assertNotNull(accounts) // checking it's not null
+		if (accounts != null) {
+			assertTrue(accounts.any { it.name == "Debit Account" })
+		}
+		if (accounts != null) {
+			assertTrue(accounts.any { it.name == "Saving Account" })
+		}
+	}
+
 
 }
