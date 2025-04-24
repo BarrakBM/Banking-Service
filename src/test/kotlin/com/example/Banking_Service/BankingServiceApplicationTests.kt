@@ -3,9 +3,9 @@ package com.example.Banking_Service
 import com.example.Banking_Service.authentication.AuthRequest
 import com.example.Banking_Service.authentication.AuthResponse
 import com.example.Banking_Service.dto.*
+import com.example.Banking_Service.kyc.KycRepository
 import com.example.Banking_Service.users.UserEntity
 import com.example.Banking_Service.users.UsersRepository
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -14,8 +14,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
-import org.springframework.boot.test.web.client.exchange
-import org.springframework.boot.test.web.client.postForEntity
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
@@ -23,7 +21,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.math.BigDecimal
-import kotlin.test.assertEquals
+import java.time.LocalDate
 
 @SpringBootTest(
 	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -32,11 +30,8 @@ import kotlin.test.assertEquals
 class BankingServiceApplicationTests {
 	@Autowired
 	lateinit var restTemplate: TestRestTemplate
-	//As a user, I can login and get jwt token
-
 	@Autowired
 	private lateinit var usersRepository: UsersRepository
-
 	@Autowired
 	private lateinit var passwordEncoder: PasswordEncoder
 
@@ -232,5 +227,55 @@ class BankingServiceApplicationTests {
 		}
 	}
 
+	// 5th test
+	@Test
+	fun `As a develop, I can test user create profile`(){
+		//get authentication token
+		val token = getAuthToken()
+
+		//get user id
+		val user = usersRepository.findByUsername(testUser)
+
+		// create a profile
+		val createKyc = SaveKycDTO(
+			userId = user?.id!!,
+			firstName = "Walter",
+			lastName = "White",
+			nationality = "Kuwait",
+			dateOfBirth = LocalDate.of(1960,1,1),
+			salary = BigDecimal(100000.00)
+		)
+
+		val response: ResponseEntity<KycResponseDTO> = restTemplate.postForEntity(
+			"/users/v1/kyc",
+			authRequest(createKyc, token),
+			KycResponseDTO::class.java
+		)
+
+		//verify response
+		assertEquals(HttpStatus.OK, response.statusCode)
+
+		// update a profile
+		val updateKyc = SaveKycDTO(
+			userId = user.id!!,
+			firstName = "Jessi",
+			lastName = "White",
+			nationality = "USA",
+			dateOfBirth = LocalDate.of(1960,1,1),
+			salary = BigDecimal(4000)
+		)
+
+		val response2: ResponseEntity<KycResponseDTO> = restTemplate.postForEntity(
+			"/users/v1/kyc",
+			authRequest(updateKyc, token),
+			KycResponseDTO::class.java
+		)
+
+		//verify response
+		assertEquals(HttpStatus.OK, response.statusCode)
+		assertEquals("Jessi", response2.body?.firstName)
+		assertEquals(BigDecimal("4000"), response2.body?.salary)
+
+	}
 
 }
