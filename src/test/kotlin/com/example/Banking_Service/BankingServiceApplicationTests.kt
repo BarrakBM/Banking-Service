@@ -14,6 +14,9 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
+import org.springframework.boot.test.web.client.exchange
+import org.springframework.boot.test.web.client.getForEntity
+import org.springframework.boot.test.web.client.postForEntity
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
@@ -22,6 +25,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.math.BigDecimal
 import java.time.LocalDate
+import kotlin.test.assertFalse
 
 @SpringBootTest(
 	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -229,7 +233,7 @@ class BankingServiceApplicationTests {
 
 	// 5th test
 	@Test
-	fun `As a develop, I can test user create profile`(){
+	fun `As a develop, I can test user create profile and update it`(){
 		//get authentication token
 		val token = getAuthToken()
 
@@ -272,10 +276,186 @@ class BankingServiceApplicationTests {
 		)
 
 		//verify response
-		assertEquals(HttpStatus.OK, response.statusCode)
+		assertEquals(HttpStatus.OK, response2.statusCode)
 		assertEquals("Jessi", response2.body?.firstName)
 		assertEquals(BigDecimal("4000"), response2.body?.salary)
 
 	}
 
+	//6th test
+	@Test
+	fun `As a develop, I can test user read profile`(){
+		//get authentication token
+		val token = getAuthToken()
+
+		//get user id
+		val user = usersRepository.findByUsername(testUser)
+
+			// create a profile
+		val createKyc = SaveKycDTO(
+			userId = user?.id!!,
+			firstName = "Walter",
+			lastName = "White",
+			nationality = "Kuwait",
+			dateOfBirth = LocalDate.of(1960,1,1),
+			salary = BigDecimal(100000.00)
+		)
+
+
+		// create a kyc
+		val response: ResponseEntity<KycResponseDTO> = restTemplate.postForEntity(
+			"/users/v1/kyc",
+			authRequest(createKyc, token),
+			KycResponseDTO::class.java
+		)
+		//verify response
+		assertEquals(HttpStatus.OK, response.statusCode)
+
+		// create authenticated get request
+		val headers = HttpHeaders()
+		headers.setBearerAuth(token)
+		val getRequest = HttpEntity<Any>(headers)
+
+		// read kyc information
+
+		val getResponse: ResponseEntity<KycResponseDTO> = restTemplate.exchange(
+			"/users/v1/kyc/${user.id}",
+			HttpMethod.GET,
+			getRequest,
+			KycResponseDTO::class.java
+		)
+
+		// verify response
+		// and check the values are correct
+		assertEquals(HttpStatus.OK, getResponse.statusCode) // return code
+		assertNotNull(getResponse.body)
+		assertEquals("Walter", getResponse.body?.firstName)
+		assertEquals("White", getResponse.body?.lastName)
+		assertEquals(LocalDate.of(1960, 1, 1), getResponse.body?.dateOfBirth)
+		assertEquals(BigDecimal("100000.00"), getResponse.body?.salary)
+		assertEquals(user.id, getResponse.body?.userId)
+	}
+
+	// closing a user account
+	@Test
+	fun `As a developer, I can test closing a user account`(){
+
+		//get authentication token
+		val token = getAuthToken()
+
+		//get user id
+		val user = usersRepository.findByUsername(testUser)
+
+		//create account
+		val account1 = CreateAccountDTO(
+			userId = user?.id!!,
+			name = testUser,
+			initialBalance = BigDecimal(1000.00)
+		)
+
+		// creating first account
+		val response: ResponseEntity<CreateAccountResponseDTO> = restTemplate.postForEntity(
+			"/accounts/v1/accounts",
+			authRequest(account1, token),
+			CreateAccountResponseDTO::class.java
+		)
+		assertEquals(HttpStatus.OK, response.statusCode) // check status code
+
+		// getting the default account number from the response
+		val accountNumber = response.body?.accountNumber
+
+		//now closing the account
+		val headers = HttpHeaders()
+		headers.setBearerAuth(token)
+		val closeRequest = HttpEntity<Any>(headers)
+
+		val closeResponse: ResponseEntity<Any> = restTemplate.postForEntity(
+			"/accounts/v1/accounts/$accountNumber/close",
+			closeRequest,
+			Any::class.java
+		)
+		// verify account is closed (set to false)
+		assertEquals(HttpStatus.OK, response.statusCode) // check status code
+
+	}
+
+	@Test
+	fun `As a developer, I can test transferring money to anther account`(){
+		//get authentication token
+		val token = getAuthToken()
+
+		//get user id
+		val user = usersRepository.findByUsername(testUser)
+
+		// create first account request
+		val account1 = CreateAccountDTO(
+			userId = user?.id!!,
+			name = "Debit Account",
+			initialBalance = BigDecimal("4000.00")
+		)
+		//create 2nd account
+		val account2 = CreateAccountDTO(
+			userId = user.id!!,
+			name = "Saving Account",
+			initialBalance = BigDecimal("10000.00")
+		)
+
+		//response for account 1
+		val response1: ResponseEntity<CreateAccountResponseDTO> = restTemplate.postForEntity(
+			"/accounts/v1/accounts",
+			authRequest(account1, token),
+			CreateAccountResponseDTO::class.java
+		)
+		assertEquals(HttpStatus.OK, response1.statusCode) // check status code
+		// getting the default account number from the response
+		val accountNumber1 = response1.body?.accountNumber
+
+		//account2 response
+		val response2: ResponseEntity<CreateAccountResponseDTO> = restTemplate.postForEntity(
+			"/accounts/v1/accounts",
+			authRequest(account2, token),
+			CreateAccountResponseDTO::class.java
+		)
+		assertEquals(HttpStatus.OK, response2.statusCode) // check status code
+
+		// getting the default account number from the response
+		val accountNumber2 = response2.body?.accountNumber
+
+		// creating a transfer request
+		val transferRequest = TransactionRequestDTO(
+			sourceAccountNumber = accountNumber1!!,
+			destinationAccountNumber = accountNumber2!!,
+			amount = BigDecimal("1000.00")
+		)
+
+		// creating a transfer response
+		val transferResponse: ResponseEntity<TransactionResponseDTO> = restTemplate.postForEntity(
+			"/accounts/v1/accounts/transfer",
+			authRequest(transferRequest, token),
+			TransactionResponseDTO::class.java
+		)
+		assertEquals(HttpStatus.OK, transferResponse.statusCode) // check status code
+
+
+		val headers = HttpHeaders()
+		headers.setBearerAuth(token)
+		val getRequest = HttpEntity<Any>(headers)
+		// getting the accounts in a list
+		val accountsResponse: ResponseEntity<AccountListResponseDTO> = restTemplate.exchange(
+			"/accounts/v1/accounts",
+			HttpMethod.GET,
+			getRequest,
+			AccountListResponseDTO::class.java
+		)
+
+		val accounts = accountsResponse.body?.accounts //list of accounts
+
+		// getting the accounts numbers
+		val sourceAccount = accounts?.find {it.accountNumber == accountNumber1}
+		val destinationAccount = accounts?.find {it.accountNumber == accountNumber2}
+
+		// checking the values
+		assertEquals(BigDecimal("3000.00"), sourceAccount?.balance)
+		assertEquals(BigDecimal("11000.00"), destinationAccount?.balance)
+	}
 }
