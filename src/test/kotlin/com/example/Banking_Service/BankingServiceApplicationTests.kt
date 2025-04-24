@@ -2,6 +2,8 @@ package com.example.Banking_Service
 
 import com.example.Banking_Service.authentication.AuthRequest
 import com.example.Banking_Service.authentication.AuthResponse
+import com.example.Banking_Service.dto.RegisterUserDTO
+import com.example.Banking_Service.dto.UserResponseDTO
 import com.example.Banking_Service.users.UserEntity
 import com.example.Banking_Service.users.UsersRepository
 import org.junit.jupiter.api.BeforeAll
@@ -53,6 +55,7 @@ class BankingServiceApplicationTests {
 		usersRepository.save(test)
 	}
 
+	// 1st test
 	@Test
 	fun `As a user, I can login and get jwt token`(){
 		// create a authentication request with test credentials
@@ -70,6 +73,28 @@ class BankingServiceApplicationTests {
 
 		assertEquals(HttpStatus.OK, response.statusCode) //check status code
 		assertNotNull(response.body) //check that response.body is not null
+	}
+
+	// 2nd test
+	@Test
+	fun `As a developer, I can test user regastration endpoint`(){
+		// create a regastration request
+		val regastration = RegisterUserDTO(
+			username = testUser,
+			passkey = testPassword
+		)
+
+		// send http post request to the regastration endpoint
+
+		val response: ResponseEntity<UserResponseDTO> = restTemplate.postForEntity(
+			"/users/v1/register",
+			regastration,
+			UserResponseDTO::class.java
+		)
+
+		assertEquals(HttpStatus.OK, response.statusCode) //check status code
+		assertEquals(testUser, response.body?.username) // check if username matches
+
 	}
 
 }
